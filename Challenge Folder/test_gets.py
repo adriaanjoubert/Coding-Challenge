@@ -5,13 +5,13 @@ import logging as log
 
 from psycopg2.extensions import connection
 
-from test_database import exc_qrs_get_dfs
+from test_database import execute_queries_get_dataframes
 
 log.basicConfig(level=log.DEBUG)
 log.info('----- QRS_GETS.PY -----')
 
 
-def get_table(con: connection, table: str = None):
+def get_table(con: connection, item_count: int, person: str):
     """Gets all data needed to display map from the desk being scanned.
 
     Args:
@@ -21,37 +21,13 @@ def get_table(con: connection, table: str = None):
         response_object (obj): python object of returned dataframes of the following:
             "users_table" (df): if arg was user
             "data_table" (df): if arg was data"""
-    log.info(">> get_table(table=None). table: %s", table)
-
-    query_select_records = "SELECT * FROM records;"
-
-    query_select_data = "SELECT * FROM data;"
-
-    query_list = [
-        query_select_records,
-        query_select_data]
-    log.info("query list: %s", query_list)
+    query = "SELECT records.id, records.person, data.text, data.json FROM records LEFT OUTER JOIN data ON records.data_id = data.id WHERE records.person = %s LIMIT %s;"
 
     try:
-        # get the data
-        response_list = exc_qrs_get_dfs(con=con, query_string_list=query_list)
-        log.info("database responses: %s", response_list)
-
-        response_object = {
-            "records_table": response_list[0],
-            "data_table": response_list[1],
-        }
-
+        df = execute_queries_get_dataframes(con=con, query=query, item_count=item_count, person=person)
+        df = df.rename(columns={0: 'id', 1: 'person', 2: 'text', 3: 'json'})
+        log.info("database response: %s", df)
+        return df
     except Exception as error:
         log.info(error)
         return error
-
-    if table == "records":
-        response_object.pop("data_table")
-        return response_object
-
-    if table == "data":
-        response_object.pop("records_table")
-        return response_object
-
-    return response_object
