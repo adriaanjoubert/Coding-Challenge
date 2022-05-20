@@ -3,7 +3,7 @@
 
 import logging as log
 
-from psycopg2.extensions import connection
+from psycopg2.extensions import connection, cursor
 
 from test_database import execute_queries_get_dataframes
 
@@ -11,7 +11,7 @@ log.basicConfig(level=log.DEBUG)
 log.info('----- QRS_GETS.PY -----')
 
 
-def get_table(con: connection, item_count: int, person: str):
+def get_table(conn: connection, cur: cursor, item_count: int, person: str):
     """Gets all data needed to display map from the desk being scanned.
 
     Args:
@@ -24,7 +24,7 @@ def get_table(con: connection, item_count: int, person: str):
     query = "SELECT records.id, records.person, data.text, data.json FROM records LEFT OUTER JOIN data ON records.data_id = data.id WHERE records.person = %s LIMIT %s;"
 
     try:
-        df = execute_queries_get_dataframes(con=con, query=query, item_count=item_count, person=person)
+        df = execute_queries_get_dataframes(conn=conn, cur=cur, query=query, item_count=item_count, person=person)
         df = df.rename(columns={0: 'id', 1: 'person', 2: 'text', 3: 'json'})
         log.info("database response: %s", df)
         return df

@@ -27,7 +27,8 @@ DB_KWARGS_TEXT = {
     "dbname": "coding-challenge-db",
     "host": "34.84.8.142"
 }
-con = pg.connect(**DB_KWARGS_TEXT)
+conn = pg.connect(**DB_KWARGS_TEXT)
+cur = conn.cursor()
 
 
 @app.route('/', methods=['GET'])
@@ -55,7 +56,7 @@ def at_log():
     """
     log.info("@ at_log()")
 
-    response = gets.get_table(con=con)
+    response = gets.get_table(conn=conn, cur=cur)
     if isinstance(response, Exception):
         return render_template('at-error.html', message=".error('Error occured')", error=response)
     database_log_html = response["data_table"].to_html(index=False)
