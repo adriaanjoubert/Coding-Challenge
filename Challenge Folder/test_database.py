@@ -8,18 +8,8 @@ import pandas as pd
 import psycopg2 as pg
 from psycopg2.extensions import connection
 
-DB_KWARGS = get_db_kwargs()
 
-# ˅
-DB_KWARGS_TEXT = {
-    "user":"challenger",
-    "password":"not_the_real_password",
-    "dbname":"coding-challenge-db",
-    "host":"34.84.8.142"
-}
-
-# ˅
-def execute_queries_get_dataframes(query_string_list):
+def execute_queries_get_dataframes(con: connection, query_string_list):  # TODO: rm if unused
     """Excute the list of queries as sql and returns dataframes.
 
     Args:
@@ -31,12 +21,9 @@ def execute_queries_get_dataframes(query_string_list):
     Errors:
         response ([str]): returns a list (equal in length to args list length)
                           of string message with database error"""
-    con = None
     response = []
 
     try:
-        # connect to server
-        con = pg.connect(**DB_KWARGS_TEXT)
         # create a cursor
         cur = con.cursor()
         # declare dataframe list

@@ -12,7 +12,8 @@ from test_database import (
 log.basicConfig(level=log.DEBUG)
 log.info('----- QRS_GETS.PY -----')
 
-def get_table(table=None):
+
+def get_table(con: connection, table: str = None):
     """Gets all data needed to display map from the desk being scanned.
 
     Args:
