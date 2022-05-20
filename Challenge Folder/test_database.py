@@ -2,11 +2,14 @@
 
 
 import io
+import logging as log
 from typing import List
 
 import pandas as pd
 import psycopg2 as pg
 from psycopg2.extensions import connection
+
+log.basicConfig(level=log.DEBUG)
 
 
 def execute_queries_get_dataframes(con: connection, query_string_list):  # TODO: rm if unused
@@ -72,36 +75,21 @@ def exc_qrs_get_dfs(con: connection, query_string_list: List[str]) -> List[pd.Da
     Errors:
         response ([str]): returns a list (equal in length to args list length)
                           of string message with database error"""
+
+    df_list = []
     response = []
 
-    # declare dataframe list
-    df_list = []
-    # loop through the list
     for query in query_string_list:
-
         try:
-            # create a cursor
             cur = con.cursor()
-        
-            # create new stringIO
-            store = io.StringIO()
-            # put query into sql
-            sql_string = "COPY ({query}) TO STDOUT WITH CSV HEADER".format(query=query)
-            # put sql response into stringio
-            cur.copy_expert(str(sql_string), store)
-            # prepare to read csv
-            store.seek(0)
-            # put csv into dataframe
-            df = pd.read_csv(store, na_filter=False)
-            # add dataframe to list
-            df_list.append(df)
-
-            # close the cursor
+            cur.execute(query)  # TODO: parameterize query
+            data = cur.fetchall()
             cur.close()
-
+            df = pd.DataFrame.from_records(data)
+            df_list.append(df)
             response = df_list
-
         except pg.Error as error:
+            log.error(error)
             for _ in query_string_list:
                 response.append(error)
 

@@ -90,20 +90,18 @@ def at_test(item_count=None):
     if isinstance(response, Exception):
         return render_template('at-error.html', message="There was an error.", error=response)
 
-    records_json = response["records_table"].to_json(orient="records")
+    records_json = response["records_table"].rename(columns={0: 'id', 1: 'person', 2: 'data_id'}).to_json(orient="records")
 
     response2 = gets.get_table(con=con, table="data")
 
     if item_count > 100:
-
         return render_template(
             'at-error.html',
             message="More then 100 items selected, too many. Item Count: ",
             error=item_count)
 
-    if (type_query == "text"):
-
-        data_text = response2["data_table"].to_json(orient="records")
+    if type_query == "text":
+        data_text = response2["data_table"].rename(columns={0: 'id', 1: 'text', 2: 'json'}).to_json(orient="records")
 
         return render_template(
             'at-text.html',
@@ -112,7 +110,7 @@ def at_test(item_count=None):
             item_count=item_count,
             hit=hit_time)
     
-    data_json = response2["data_table"].to_json(orient="records")
+    data_json = response2["data_table"].rename(columns={0: 'id', 1: 'text', 2: 'json'}).to_json(orient="records")
 
     return render_template(
         'at-json.html',

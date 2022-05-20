@@ -5,9 +5,7 @@ import logging as log
 
 from psycopg2.extensions import connection
 
-from test_database import (
-    execute_queries_get_dataframes,
-    exc_qrs_get_dfs)
+from test_database import exc_qrs_get_dfs
 
 log.basicConfig(level=log.DEBUG)
 log.info('----- QRS_GETS.PY -----')
@@ -25,10 +23,9 @@ def get_table(con: connection, table: str = None):
             "data_table" (df): if arg was data"""
     log.info(">> get_table(table=None). table: %s", table)
 
-    # ˅
-    query_select_records = ("SELECT * FROM records")
+    query_select_records = "SELECT * FROM records;"
 
-    query_select_data = ("SELECT * FROM data")
+    query_select_data = "SELECT * FROM data;"
 
     query_list = [
         query_select_records,
@@ -42,7 +39,8 @@ def get_table(con: connection, table: str = None):
 
         response_object = {
             "records_table": response_list[0],
-            "data_table": response_list[1]}
+            "data_table": response_list[1],
+        }
 
     except Exception as error:
         log.info(error)
