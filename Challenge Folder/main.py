@@ -99,7 +99,7 @@ def at_test(item_count=None):
 
     # <- get user info
     try:
-        df = gets.get_table(con=con, item_count=item_count, person=person_query)
+        df = gets.get_table(conn=conn, cur=cur, item_count=item_count, person=person_query)
     except pg.Error as error:
         return render_template('at-error.html', message="There was an error.", error=error)
 
