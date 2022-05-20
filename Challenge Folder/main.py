@@ -4,17 +4,28 @@ It looks for "app" in the "main.py" class to run flask with gunicorn"""
 
 import time
 import logging
-from pandas import DataFrame
-from flask import Flask, render_template, request, send_file, make_response
+import psycopg2 as pg
+from flask import Flask, render_template, request
 from flask.logging import create_logger
 
 import test_gets as gets
+from test_dbconfig import get_db_kwargs
 
 app = Flask(__name__)
 
 logging.basicConfig(level=logging.DEBUG)
 log = create_logger(app)
 log.info('------ DEBUG LOGGING STARTS HERE -------')
+
+# connect to server
+DB_KWARGS = get_db_kwargs()
+DB_KWARGS_TEXT = {
+    "user":"challenger",
+    "password":"not_the_real_password",
+    "dbname":"coding-challenge-db",
+    "host":"34.84.8.142"
+}
+con = pg.connect(**DB_KWARGS_TEXT)
 
 
 @app.route('/', methods=['GET'])
@@ -42,7 +53,7 @@ def at_log():
     """
     log.info("@ at_log()")
 
-    response = gets.get_table()
+    response = gets.get_table(con=con)
     if isinstance(response, Exception):
         return render_template('at-error.html', message=".error('Error occured')", error=response)
     database_log_html = response["data_table"].to_html(index=False)
@@ -75,13 +86,13 @@ def at_test(item_count=None):
     type_query = request.args.get('type', type = str)
 
     # <- get user info
-    response = gets.get_table("records")
+    response = gets.get_table(con=con, table="records")
     if isinstance(response, Exception):
         return render_template('at-error.html', message="There was an error.", error=response)
 
     records_json = response["records_table"].to_json(orient="records")
 
-    response2 = gets.get_table("data")
+    response2 = gets.get_table(con=con, table="data")
 
     if item_count > 100:
 

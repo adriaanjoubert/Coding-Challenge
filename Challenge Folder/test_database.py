@@ -2,10 +2,11 @@
 
 
 import io
+from typing import List
+
 import pandas as pd
 import psycopg2 as pg
-
-from test_dbconfig import get_db_kwargs
+from psycopg2.extensions import connection
 
 DB_KWARGS = get_db_kwargs()
 
@@ -72,7 +73,7 @@ def execute_queries_get_dataframes(query_string_list):
     return response
 
 
-def exc_qrs_get_dfs(query_string_list):
+def exc_qrs_get_dfs(con: connection, query_string_list: List[str]) -> List[pd.DataFrame]:
     """Excute the list of queries as sql and returns dataframes.
 
     Args:
@@ -84,7 +85,6 @@ def exc_qrs_get_dfs(query_string_list):
     Errors:
         response ([str]): returns a list (equal in length to args list length)
                           of string message with database error"""
-    con = None
     response = []
 
     # declare dataframe list
@@ -93,8 +93,6 @@ def exc_qrs_get_dfs(query_string_list):
     for query in query_string_list:
 
         try:
-            # connect to server
-            con = pg.connect(**DB_KWARGS_TEXT)
             # create a cursor
             cur = con.cursor()
         
@@ -111,19 +109,13 @@ def exc_qrs_get_dfs(query_string_list):
             # add dataframe to list
             df_list.append(df)
 
-            # commit executions
-            con.commit()
             # close the cursor
             cur.close()
 
             response = df_list
 
         except pg.Error as error:
-            for query in query_string_list:
+            for _ in query_string_list:
                 response.append(error)
-        finally:
-            if con is not None:
-                con.close()
 
     return response
-    
