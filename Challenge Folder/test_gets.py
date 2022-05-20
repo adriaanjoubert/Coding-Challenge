@@ -2,9 +2,8 @@
 
 
 import logging as log
-#import io
-from pandas import DataFrame
 
+from psycopg2.extensions import connection
 
 from test_database import (
     execute_queries_get_dataframes,
@@ -13,7 +12,8 @@ from test_database import (
 log.basicConfig(level=log.DEBUG)
 log.info('----- QRS_GETS.PY -----')
 
-def get_table(table=None):
+
+def get_table(con: connection, table: str = None):
     """Gets all data needed to display map from the desk being scanned.
 
     Args:
@@ -37,18 +37,17 @@ def get_table(table=None):
 
     try:
         # get the data
-        response_list = exc_qrs_get_dfs(query_list)
+        response_list = exc_qrs_get_dfs(con=con, query_string_list=query_list)
         log.info("database responses: %s", response_list)
 
         response_object = {
-            "records_table":response_list[0],
+            "records_table": response_list[0],
             "data_table": response_list[1]}
 
     except Exception as error:
         log.info(error)
         return error
 
-    # ˅
     if table == "records":
         response_object.pop("data_table")
         return response_object
