@@ -4,6 +4,8 @@ It looks for "app" in the "main.py" class to run flask with gunicorn"""
 
 import time
 import logging
+
+import pandas as pd
 import psycopg2 as pg
 from flask import Flask, render_template, request
 from flask.logging import create_logger
@@ -20,12 +22,13 @@ log.info('------ DEBUG LOGGING STARTS HERE -------')
 # connect to server
 DB_KWARGS = get_db_kwargs()
 DB_KWARGS_TEXT = {
-    "user":"challenger",
-    "password":"not_the_real_password",
-    "dbname":"coding-challenge-db",
-    "host":"34.84.8.142"
+    "user": "challenger",
+    "password": "not_the_real_password",
+    "dbname": "coding-challenge-db",
+    "host": "34.84.8.142"
 }
-con = pg.connect(**DB_KWARGS_TEXT)
+conn = pg.connect(**DB_KWARGS_TEXT)
+cur = conn.cursor()
 
 
 @app.route('/', methods=['GET'])
@@ -39,28 +42,6 @@ def index():
 
     return render_template(
         'at-index.html')
-
-
-#this is not in use
-@app.route('/log', methods=['GET'])
-def at_log():
-    """Runs when GET requested on '/log'.
-    
-    When user selects view log from the home page.
-    
-    Return:
-        render_template (flask): html template based on logic from this app
-    """
-    log.info("@ at_log()")
-
-    response = gets.get_table(con=con)
-    if isinstance(response, Exception):
-        return render_template('at-error.html', message=".error('Error occured')", error=response)
-    database_log_html = response["data_table"].to_html(index=False)
-
-    return render_template(
-        'at-log.html',
-        data=database_log_html)
 
 
 @app.route('/test/<int:item_count>', methods=['GET'])
@@ -78,48 +59,61 @@ def at_test(item_count=None):
 
     #  ˅This is the script that measures the performance, not allowed to edit this section.˅ 
     hit_time = time.time()
-	#  ˄This is the script that measures the performance, not allowed to edit this section.˄ 
-
-    # <- get email query string
-    person_query = request.args.get('person', type = str)
-
-    type_query = request.args.get('type', type = str)
-
-    # <- get user info
-    response = gets.get_table(con=con, table="records")
-    if isinstance(response, Exception):
-        return render_template('at-error.html', message="There was an error.", error=response)
-
-    records_json = response["records_table"].to_json(orient="records")
-
-    response2 = gets.get_table(con=con, table="data")
+    #  ˄This is the script that measures the performance, not allowed to edit this section.˄
 
     if item_count > 100:
-
         return render_template(
             'at-error.html',
             message="More then 100 items selected, too many. Item Count: ",
-            error=item_count)
+            error=item_count
+        )
 
-    if (type_query == "text"):
+    person_query = request.args.get('person', type=str)
+    type_query = request.args.get('type', type=str)
 
-        data_text = response2["data_table"].to_json(orient="records")
+    if not type_query:
+        if person_query:
+            return render_template(
+                'at-error.html',
+                message="Please select either Text or JSON",
+                error='',
+            )
+        return render_template(
+            'at-json.html',
+            records=pd.DataFrame(),
+            data='{}',
+            item_count=item_count,
+            hit=hit_time,
+        )
+
+    # <- get user info
+    try:
+        df = gets.get_table(conn=conn, cur=cur, item_count=item_count, person=person_query)
+    except pg.Error as error:
+        return render_template('at-error.html', message="There was an error.", error=error)
+
+    records_json = df[['id', 'person']].to_json(orient="records")
+
+    if type_query == "text":
+        data_text = df[['id', 'text', 'json']].to_json(orient="records")
 
         return render_template(
             'at-text.html',
             records=records_json,
             data=data_text,
             item_count=item_count,
-            hit=hit_time)
+            hit=hit_time
+        )
     
-    data_json = response2["data_table"].to_json(orient="records")
+    data_json = df[['id', 'text', 'json']].to_json(orient="records")
 
     return render_template(
         'at-json.html',
         records=records_json,
         data=data_json,
         item_count=item_count,
-        hit=hit_time)
+        hit=hit_time
+    )
 
 
 if __name__ == "__main__":
