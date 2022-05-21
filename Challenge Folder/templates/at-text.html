@@ -5,7 +5,6 @@
 	console.log("--> at text <--")
 </script>
 
-
 <h1 style="color: cornflowerblue;">Database Log of TEXT</h1>
 
 <h2 id="for-person">for person: </h2>
@@ -28,13 +27,10 @@
 	var person = params.get("person");
 	document.getElementById("for-person").append(person);
 
-	var itemNumber = {{item_count}};
+	var itemNumber = {{ item_count }};
 	document.getElementById("items").append(itemNumber);
 
-	  var data = {{ data | safe }};
-	  var records = {{ records | safe }};
-
-	  let i = 0;
+	var data = {{ data | safe }};
 
 	if (person) {
 		for (let i = 0; i < data.length; i++) {
@@ -46,7 +42,6 @@
 			cell_data.innerHTML = data[i]["text"];
 		}
 	}
-
 
   </script>
 <br>
@@ -62,7 +57,5 @@
 	}
 </script>
 <!-- ˄This is the script that measures the performance, not allowed to edit this section.˄ -->
-
-
 
 {% endblock text %}
