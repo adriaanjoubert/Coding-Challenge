@@ -81,20 +81,31 @@ def at_test(item_count=None):
 
     #  ˅This is the script that measures the performance, not allowed to edit this section.˅ 
     hit_time = time.time()
-	#  ˄This is the script that measures the performance, not allowed to edit this section.˄ 
+    #  ˄This is the script that measures the performance, not allowed to edit this section.˄
 
-    # <- get email query string
+    if item_count > 100:
+        return render_template(
+            'at-error.html',
+            message="More then 100 items selected, too many. Item Count: ",
+            error=item_count
+        )
+
     person_query = request.args.get('person', type=str)
-
     type_query = request.args.get('type', type=str)
 
     if not type_query:
+        if person_query:
+            return render_template(
+                'at-error.html',
+                message="Please select either Text or JSON",
+                error='',
+            )
         return render_template(
             'at-json.html',
             records=pd.DataFrame(),
             data='{}',
             item_count=item_count,
-            hit=hit_time
+            hit=hit_time,
         )
 
     # <- get user info
@@ -104,13 +115,6 @@ def at_test(item_count=None):
         return render_template('at-error.html', message="There was an error.", error=error)
 
     records_json = df[['id', 'person']].to_json(orient="records")
-
-    if item_count > 100:
-        return render_template(
-            'at-error.html',
-            message="More then 100 items selected, too many. Item Count: ",
-            error=item_count
-        )
 
     if type_query == "text":
         data_text = df[['id', 'text', 'json']].to_json(orient="records")
