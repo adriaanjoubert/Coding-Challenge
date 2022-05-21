@@ -1,31 +1,36 @@
-"""This module does the query execution to the database"""
 import logging as log
 
 import pandas as pd
 import psycopg2 as pg
-from psycopg2.extensions import connection, cursor
 
-log.basicConfig(level=log.DEBUG)
+from test_dbconfig import get_db_kwargs
 
 
-def execute_queries_get_dataframes(conn: connection, cur: cursor, query: str, item_count: int, person: str) -> pd.DataFrame:
-    """Excute the list of queries as sql and returns dataframes.
+class DBClient(object):
 
-    Args:
-        query_string_list ([str]): list of query strings to execute on database
+    def __init__(self) -> None:
+        # connect to server
+        self.conn = pg.connect(**get_db_kwargs())
+        self.cur = self.conn.cursor()
 
-    Returns:
-        response ([dataframe]): the data from database a dataframe for each query
+    def get_df(self, item_count: int, person: str) -> pd.DataFrame:
+        query = (
+            'SELECT records.id, records.person, data.text, data.json '
+            'FROM records '
+            'LEFT OUTER JOIN data ON records.data_id = data.id '
+            'WHERE records.person = %s LIMIT %s;'
+        )
+        try:
+            self.cur.execute(query, (person, item_count))
+            data = self.cur.fetchall()
+            self.conn.commit()
+            df = pd.DataFrame.from_records(data).rename(columns={0: 'id', 1: 'person', 2: 'text', 3: 'json'})
+            log.info("database response: %s", df)
+            return df
+        except pg.Error as error:
+            log.error(error)
+            raise error
 
-    Errors:
-        response ([str]): returns a list (equal in length to args list length)
-                          of string message with database error"""
-
-    try:
-        cur.execute(query, (person, item_count))
-        data = cur.fetchall()
-        conn.commit()
-        return pd.DataFrame.from_records(data)
-    except pg.Error as error:
-        log.error(error)
-        raise error
+    def get_json(self, item_count: int, person: str) -> str:
+        df = self.get_df(item_count=item_count, person=person)
+        return df.to_json(orient='records')

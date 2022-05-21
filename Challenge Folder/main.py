@@ -7,11 +7,11 @@ import logging
 
 import pandas as pd
 import psycopg2 as pg
+
 from flask import Flask, render_template, request
 from flask.logging import create_logger
 
-import test_gets as gets
-from test_dbconfig import get_db_kwargs
+from test_database import DBClient
 
 app = Flask(__name__)
 
@@ -19,16 +19,7 @@ logging.basicConfig(level=logging.DEBUG)
 log = create_logger(app)
 log.info('------ DEBUG LOGGING STARTS HERE -------')
 
-# connect to server
-DB_KWARGS = get_db_kwargs()
-DB_KWARGS_TEXT = {
-    "user": "challenger",
-    "password": "not_the_real_password",
-    "dbname": "coding-challenge-db",
-    "host": "34.84.8.142"
-}
-conn = pg.connect(**DB_KWARGS_TEXT)
-cur = conn.cursor()
+db_client = DBClient()
 
 
 @app.route('/', methods=['GET'])
@@ -40,8 +31,7 @@ def index():
     """
     log.info("@ index()")
 
-    return render_template(
-        'at-index.html')
+    return render_template('at-index.html')
 
 
 @app.route('/test/<int:item_count>', methods=['GET'])
@@ -88,28 +78,20 @@ def at_test(item_count=None):
 
     # <- get user info
     try:
-        df = gets.get_table(conn=conn, cur=cur, item_count=item_count, person=person_query)
+        data_json = db_client.get_json(item_count=item_count, person=person_query)
     except pg.Error as error:
         return render_template('at-error.html', message="There was an error.", error=error)
 
-    records_json = df[['id', 'person']].to_json(orient="records")
-
     if type_query == "text":
-        data_text = df[['id', 'text', 'json']].to_json(orient="records")
-
         return render_template(
             'at-text.html',
-            records=records_json,
-            data=data_text,
+            data=data_json,
             item_count=item_count,
             hit=hit_time
         )
-    
-    data_json = df[['id', 'text', 'json']].to_json(orient="records")
 
     return render_template(
         'at-json.html',
-        records=records_json,
         data=data_json,
         item_count=item_count,
         hit=hit_time

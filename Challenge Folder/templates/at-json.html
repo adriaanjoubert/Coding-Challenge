@@ -5,7 +5,6 @@
 	console.log("--> at json <--")
 </script>
 
-
 <h1 style="color: coral;">Database Log of JSON</h1>
 
 <h2 id="for-person">for person: </h2>
@@ -31,22 +30,18 @@
 	var itemNumber = {{ item_count }};
 	document.getElementById("items").append(itemNumber);
 
-	var data = {{ data | safe}};
-	var records = {{ records | safe}};
+	var data = {{ data | safe }};
 
-	let i = 0;
-
-if (person) {
-	for (let i = 0; i < data.length; i++) {
-		var table = document.getElementById("table");
-		var row = table.insertRow(-1);
-		var cell_id = row.insertCell(0);
-		var cell_data = row.insertCell(1);
-		cell_id.innerHTML = data[i]["id"];
-		cell_data.innerHTML = data[i]["json"];
+	if (person) {
+		for (let i = 0; i < data.length; i++) {
+			var table = document.getElementById("table");
+			var row = table.insertRow(-1);
+			var cell_id = row.insertCell(0);
+			var cell_data = row.insertCell(1);
+			cell_id.innerHTML = data[i]["id"];
+			cell_data.innerHTML = data[i]["json"];
+		}
 	}
-}
-
 
 </script>
 <br>
@@ -62,6 +57,5 @@ if (person) {
 	}
 </script>
 <!-- ˄This is the script that measures the performance, not allowed to edit this section.˄ -->
-
 
 {% endblock json %}
