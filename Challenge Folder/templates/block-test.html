@@ -7,30 +7,24 @@
 <div style="border: solid black;">
     <form>
 
-        <!-- email -->
         <label for="person">
-            Person to search for:
-            <input type="text" name="person" id="person">
+            Person to search for: <input type="text" name="person" id="person">
         </label>
 
-        <!-- ˅ -->
         <label for="text">
-            Text
-            <input type="checkbox" value="text" name="type" id="text" />
-    </label>
+            Text <input type="radio" value="text" name="type" id="text" required>
+        </label>
 
-    <label for="json">
-        JSON
-        <input type="checkbox" value="json" name="type" id="json" />
-    </label>
+        <label for="json">
+            JSON <input type="radio" value="json" name="type" id="json" required>
+        </label>
 
         <button >
-        <i class="fas fa-thumbs-up"></i>
-        GO!</button>
+            <i class="fas fa-thumbs-up"></i> GO!
+        </button>
+
     </form>
 </div>
 <br>
-
-
 
 {% endblock test %}
