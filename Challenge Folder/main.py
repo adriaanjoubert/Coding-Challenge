@@ -44,28 +44,6 @@ def index():
         'at-index.html')
 
 
-#this is not in use
-@app.route('/log', methods=['GET'])
-def at_log():
-    """Runs when GET requested on '/log'.
-    
-    When user selects view log from the home page.
-    
-    Return:
-        render_template (flask): html template based on logic from this app
-    """
-    log.info("@ at_log()")
-
-    response = gets.get_table(conn=conn, cur=cur)
-    if isinstance(response, Exception):
-        return render_template('at-error.html', message=".error('Error occured')", error=response)
-    database_log_html = response["data_table"].to_html(index=False)
-
-    return render_template(
-        'at-log.html',
-        data=database_log_html)
-
-
 @app.route('/test/<int:item_count>', methods=['GET'])
 def at_test(item_count=None):
     """Runs when GET requested on '/login/<user_id>'.

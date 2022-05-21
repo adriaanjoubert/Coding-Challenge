@@ -2,7 +2,6 @@
 
 {% block index %}
 
-<!-- ˅ -->
 <link rel="shortcut icon" type="image/ico" href="{{ url_for('static', filename='images/favicon.ico') }}"/>
 <link rel="apple-touch-icon" href="{{ url_for('static', filename='images/favicon.ico') }}">
 
@@ -27,9 +26,10 @@
 <hr>
 
   <form>
+    <!-- TODO: required not working. Refactor JS. -->
     <label for="items">
         Quantity of data items to test with:
-        <input id="items" type="number" name="items" 
+        <input id="items" type="number" name="items" required
     onkeydown="if(event.keyCode == 13){document.getElementById('go').click()}">
     </label>
 
@@ -88,7 +88,5 @@
     <li>CREATE TABLE data(id INT PRIMARY KEY GENERATED ALWAYS AS IDENTITY, text TEXT, json TEXT);</li>
     <li>CREATE TABLE records(id INT PRIMARY KEY GENERATED ALWAYS AS IDENTITY, person TEXT, data_id INT REFERENCES data);</li>
   </ul>
-
-
 
 {% endblock index %}
